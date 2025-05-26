@@ -1,25 +1,50 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
-import { JSX } from 'react'
-import Header from '../../components/Header'
+import { JSX, useState } from 'react'
+import { Link, router } from 'expo-router'
+
 import Button from '../../components/Button'
 
+const handlePress = (): void => {
+    // サインアップ
+    router.push('/memo/list')
+}
+
 const Signup = (): JSX.Element => {
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+
     return (
         <View style={styles.container}>
-            <Header />
-
             <View style={styles.inner}>
                 <Text style={styles.title}>Sign Up</Text>
-                <TextInput style={styles.input} value='Email address' />
-                <TextInput style={styles.input} value='Password' />
+                <TextInput 
+                    style={styles.input} 
+                    value={email}
+                    placeholder='Email address'
+                    onChangeText={setEmail}
+                    autoCapitalize='none'
+                    keyboardType='email-address'
+                    textContentType='emailAddress'
+                />
+                <TextInput
+                    style={styles.input} 
+                    value={password}
+                    placeholder='Password'
+                    onChangeText={setPassword}
+                    autoCapitalize='none'
+                    secureTextEntry={true}
+                    textContentType='password'
+                />
 
-                <Button label='Submit' />
+                <Button label='Submit' onPress={handlePress} />
 
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>Already registered?</Text>
-                    <TouchableOpacity>
-                        <Text style={styles.footerLink}>Log in.</Text>
-                    </TouchableOpacity>
+                    <Link href='/auth/login' asChild>
+                        <TouchableOpacity>
+                            <Text style={styles.footerLink}>Log in.</Text>
+                        </TouchableOpacity>
+                    </Link>
                 </View>
             </View>
         </View>
