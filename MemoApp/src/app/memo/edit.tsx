@@ -1,24 +1,67 @@
-import { 
-    View, TextInput, StyleSheet, KeyboardAvoidingView
-} from 'react-native'
-import { router } from 'expo-router'
-import { JSX } from 'react'
+import { View, TextInput, StyleSheet, Alert } from 'react-native'
+import { router, useLocalSearchParams } from 'expo-router'
+import { JSX, useEffect, useState } from 'react'
 
 import CircleButton from '../../components/CircleButton'
 import Icon from '../../components/Icon'
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView'
 
-const handlePress = (): void => {
-    router.back()
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore'
+import { db, auth } from '../../config'
+
+const handlePress = (id: string, bodyText: string): void => {
+    if (!auth.currentUser) {
+        return
+    }
+
+    const ref = doc(db, `users/${auth.currentUser.uid}/memos`, id)
+    setDoc(ref, {
+        bodyText: bodyText,
+        updatedAt: Timestamp.fromDate(new Date())
+    })
+    .then(() => {
+        router.back()
+    })
+    .catch((error) => {
+        console.log('error', error)
+        Alert.alert('ERROR', 'メモの保存に失敗しました')
+    })
 }
 
 const Edit = (): JSX.Element => {
+    const id = String(useLocalSearchParams().id)
+    const [bodyText, setBodyText] = useState<string>('')
+
+    useEffect(() => {
+        if (!auth.currentUser) {
+            return
+        }
+
+        const ref = doc(db, `users/${auth.currentUser.uid}/memos`, id)
+        getDoc(ref)
+         .then((docRef) => {
+            setBodyText(docRef?.data()?.bodyText)
+         })
+         .catch((error) => {
+            console.log('error', error)
+         })
+    }, [])
+
     return (
-        <KeyboardAvoidingView behavior='height' style={styles.container}>
+        <KeyboardAvoidingView style={styles.container}>
             <View style={styles.inputContainer}>
-                <TextInput multiline style={styles.input} value={'買い物\nリスト'} />
+                <TextInput
+                    multiline
+                    style={styles.input}
+                    value={bodyText}
+                    autoFocus={true}
+                    onChangeText={(text) => {
+                        setBodyText(text)
+                    }}
+                />
             </View>
 
-            <CircleButton onPress={handlePress}>
+            <CircleButton onPress={() => {handlePress(id, bodyText)}}>
                 <Icon name='check' size={40} color='#fff' />
             </CircleButton>
         </KeyboardAvoidingView>
